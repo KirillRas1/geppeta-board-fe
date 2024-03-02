@@ -1,3 +1,4 @@
+'use client';
 import React, { useContext, useState } from 'react';
 import {
   Container,
@@ -7,9 +8,9 @@ import {
   ToggleButtonGroup,
   ToggleButton
 } from '@mui/material';
-import { useFormik, useFormikContext } from 'formik';
+import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { authContext } from 'contexts/Auth';
 import TagList from 'components/tags/TagList';
 import { PromptModeTooltip } from 'components/common/dataDisplay/tooltips/PromptModeTooltip';
@@ -33,8 +34,7 @@ const CreatePost = () => {
     content: '',
     promptMode: 'author',
     validationSchema,
-    handleSubmit: () => {
-    },
+    handleSubmit: () => {},
     onSubmit: async values => {
       try {
         const payload = {
@@ -85,12 +85,22 @@ const CreatePost = () => {
         <ToggleButton value="author" name="promptMode">
           <PromptModeTooltip promptMode={'author'}>
             {/* Set formik values explicitly since the tooltip causes the text to no trigger a button click */}
-            <span value="author" onClick={() => formik.setFieldValue('promptMode', 'author')}>Author Approved</span>
+            <span
+              value="author"
+              onClick={() => formik.setFieldValue('promptMode', 'author')}
+            >
+              Author Approved
+            </span>
           </PromptModeTooltip>
         </ToggleButton>
         <ToggleButton value="score" name="promptMode">
           <PromptModeTooltip promptMode={'score'}>
-          <span value="author" onClick={() => formik.setFieldValue('promptMode', 'score')}>Score Based</span>
+            <span
+              value="author"
+              onClick={() => formik.setFieldValue('promptMode', 'score')}
+            >
+              Score Based
+            </span>
           </PromptModeTooltip>
         </ToggleButton>
       </ToggleButtonGroup>

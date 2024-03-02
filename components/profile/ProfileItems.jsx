@@ -1,6 +1,6 @@
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useContext } from 'react';
 import { authContext } from 'contexts/Auth';
 

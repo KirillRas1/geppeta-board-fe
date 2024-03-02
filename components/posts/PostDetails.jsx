@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Comment, { CommentList } from 'components/comments/Comment';
 import { Grid, List, ListItem } from '@mui/material';
 import { Button, Typography } from '@mui/material';

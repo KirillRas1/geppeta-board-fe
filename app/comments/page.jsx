@@ -1,6 +1,7 @@
+'use client';
 import React, { useState, useEffect, useContext } from 'react';
 import { authContext } from 'contexts/Auth';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { CommentList } from 'components/comments/Comment';
 import { PostProvider } from 'contexts/Post';
 import { Typography } from '@mui/material';

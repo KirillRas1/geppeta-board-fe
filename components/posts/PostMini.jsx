@@ -3,22 +3,19 @@ import { Typography, Grid, Divider, Container, Box } from '@mui/material';
 import { getFormattedTimedelta } from 'functions/formatting/time';
 import CircleIcon from '@mui/icons-material/Circle';
 import ScoreButtons from 'components/score/ScoreButtons';
-import { useRouter } from 'next/router';
 import TagList from 'components/tags/TagList';
+import Link from 'next/link';
 
 const PostMini = ({ post }) => {
-  const router = useRouter();
-
-  const handlePostClick = id => () => {
-    router.push({ pathname: `/posts/${id}` });
-  };
   const renderItems = () => {
     return (
       <Grid container justifyContent="space-between">
         <Grid container direction="row">
-          <Typography variant="h4" onClick={handlePostClick(post.id)} sx={{ cursor: 'pointer' }}>
-            {post.title}
-          </Typography>
+          <Link href={`posts/${post.id}`} style={{ textDecoration: 'none' }}>
+            <Typography variant="h4" sx={{ cursor: 'pointer' }}>
+              {post.title}
+            </Typography>
+          </Link>
           <TagList tagNames={post.tags || []} />
         </Grid>
         <Grid container gap={2}>
@@ -32,7 +29,6 @@ const PostMini = ({ post }) => {
       </Grid>
     );
   };
-
 
   return (
     <Grid container wrap="nowrap">

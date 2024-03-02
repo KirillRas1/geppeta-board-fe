@@ -1,3 +1,4 @@
+'use client';
 import React, { createContext, useState, useEffect } from 'react';
 import { googleLogout } from '@react-oauth/google';
 import LoginDialog from 'components/common/dataDisplay/modals/LoginModal';
@@ -5,29 +6,67 @@ import {
   apiClient,
   setTokenExpirationTimes
 } from 'infrastructure/api/apiClient';
-import { useRouter } from 'next/router';
-
 export const authContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [displayName, setDisplayName] = useState('');
+  const [username, setUserName] = useState('');
   const [userId, setUserId] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [loginStatus, setLoginStatus] = useState(false);
-  const router = useRouter();
+  const [loginStatus, setLoginStatus] = useState(null);
+
+  const signup = ({ username, password }) => {
+    apiClient
+      .post('auth/registration/', {
+        username,
+        password1: password,
+        password2: password
+      })
+      .then(response => {
+        setUserName(response.data.user.username);
+      })
+      .catch(() => {
+        alert('Could not login, please login manually');
+      });
+  };
+
+  const loginWithCredentials = ({ username, password }) => {
+    apiClient
+      .post('auth/login/', { username, password })
+      .then(response => {
+        apiClient.defaults.headers.common['Authorization'] = response.data
+          .access
+          ? `Bearer ${response.data.access}`
+          : null;
+        localStorage.setItem('displayName', response.data.user.name);
+        localStorage.setItem('access', response.data.access);
+        setDisplayName(response.data.user.name);
+        setTokenExpirationTimes({
+          accessExpirationTime: new Date(
+            response.data.access_expiration
+          ).getTime(),
+          refreshExpirationTime: new Date(
+            response.data.refresh_expiration
+          ).getTime()
+        });
+        setLoginStatus(true);
+      })
+      .catch(e => {
+        alert(`Failed to login: ${e}`);
+      });
+  };
+
   const login = jwtToken => {
     apiClient
       .post('token/', {
         jwt: jwtToken
       })
       .then(function (response) {
-        setDisplayName(response.data.name);
-        setUserId(response.data.id);
         apiClient.defaults.headers.common['Authorization'] = response.data
           .access
           ? `Bearer ${response.data.access}`
           : null;
-        localStorage.setItem('displayName', response.data.name);
+        localStorage.setItem('displayName', response.data.user.name);
         setDisplayName(response.data.name);
         localStorage.setItem('user_id', response.data.id);
         setUserId(response.data.id);
@@ -39,17 +78,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    googleLogout();
-    localStorage.removeItem('displayName');
-    localStorage.removeItem('user_id');
-    localStorage.removeItem('access');
-    localStorage.removeItem('refresh');
-    localStorage.removeItem('accessTokenExpirationTime');
-    localStorage.removeItem('refreshTokenExpirationTime');
-    delete apiClient.defaults.headers.common['Authorization'];
-    setDisplayName('');
-    setUserId('');
-    setLoginStatus(false);
+    //googleLogout();
+    apiClient.post('auth/logout/').then(() => {
+      localStorage.removeItem('displayName');
+      localStorage.removeItem('user_id');
+      localStorage.removeItem('access');
+      localStorage.removeItem('refresh');
+      localStorage.removeItem('accessTokenExpirationTime');
+      localStorage.removeItem('refreshTokenExpirationTime');
+      delete apiClient.defaults.headers.common['Authorization'];
+      setDisplayName('');
+      setUserId('');
+      setLoginStatus(false);
+    });
   };
 
   function loadUserInfo() {
@@ -65,15 +106,6 @@ export const AuthProvider = ({ children }) => {
     );
   }
   useEffect(loadAxiosInterceptors, [apiClient]);
-  useEffect(() => {
-    if (displayName) {
-      localStorage.setItem('displayName', displayName);
-      localStorage.setItem('user_id', userId);
-    } else {
-      localStorage.removeItem('displayName');
-      localStorage.removeItem('user_id');
-    }
-  }, [displayName]);
 
   function showAnonUserModal(error) {
     const errorDetails = 'Authentication credentials were not provided.';
@@ -105,7 +137,8 @@ export const AuthProvider = ({ children }) => {
         displayName,
         userId,
         setDisplayName,
-        apiClient
+        apiClient,
+        loginWithCredentials
       }}
     >
       <LoginDialog

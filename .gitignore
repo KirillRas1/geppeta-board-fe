@@ -4,3 +4,4 @@ node_modules/
 .vscode/
 .vercel
 analyze/
+next.config.js

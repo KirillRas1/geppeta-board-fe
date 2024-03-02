@@ -1,15 +1,16 @@
+'use client';
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { useRouter } from 'next/router';
+import { useParams } from 'next/navigation';
 import { authContext } from 'contexts/Auth';
 
 export const postContext = createContext();
 
 export const PostProvider = ({ children }) => {
-  const router = useRouter();
+  const params = useParams();
   const [post, setPost] = useState({});
   const [page, setPage] = useState(1);
   const [posts, setPosts] = useState([]);
-  const [totalPages, setTotalPages] = useState(0)
+  const [totalPages, setTotalPages] = useState(0);
   const [comments, setComments] = useState([]);
   const [commentToReply, setCommentToReply] = useState(null);
   const { apiClient, loginStatus } = useContext(authContext);
@@ -19,31 +20,29 @@ export const PostProvider = ({ children }) => {
   };
 
   const getCommentTree = parentCommentId => {
-    return apiClient.get(`comments/tree`, { params: { parent_id: parentCommentId } });
-  }
+    return apiClient.get(`comments/tree`, {
+      params: { parent_id: parentCommentId }
+    });
+  };
 
   const getPost = async () => {
-    if (router.query.id) {
-      try {
-        const [postResponse, commentsResponse] = await Promise.all([
-          apiClient.get(`posts/${router.query.id}/`),
-          getPostComments(router.query.id)
-        ]);
-        setPost(postResponse.data);
-        setComments(commentsResponse.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+    try {
+      const [postResponse, commentsResponse] = await Promise.all([
+        apiClient.get(`posts/${params.id}/`),
+        getPostComments(params.id)
+      ]);
+      setPost(postResponse.data);
+      setComments(commentsResponse.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
     }
   };
 
-  
-
   useEffect(() => {
-    if (router.isReady) {
+    if (params.id) {
       getPost();
     }
-  }, [router.isReady, loginStatus]);
+  }, [loginStatus]);
 
   const { Provider } = postContext;
   return (

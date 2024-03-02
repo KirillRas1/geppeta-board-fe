@@ -1,18 +1,51 @@
-import { GoogleLogin, googleLogout } from '@react-oauth/google';
-import React, { use, useState, useEffect, useContext } from 'react';
-import { Button } from '@mui/material';
+'use client';
+import {
+  GoogleLogin,
+  googleLogout,
+  useGoogleOneTapLogin,
+  useGoogleLogin
+} from '@react-oauth/google';
+import React, { useContext, useState } from 'react';
+import { Box, Button } from '@mui/material';
 import { authContext } from 'contexts/Auth';
-
+import SignUpButton from 'components/auth/Signup';
+import LoginModal from './auth/Login';
+import ReactDOM from 'react-dom';
+import FacebookLogin from 'react-facebook-login';
+import apiClient from 'infrastructure/api/apiClient';
 export default function GoogleLoginButton() {
   const { login, logout, displayName } = useContext(authContext);
+
   const responseMessage = responseFromGoogle => {
+    console.log(responseFromGoogle);
     login(responseFromGoogle.credential);
+    apiClient.post('auth/google/', {
+      access_token: responseFromGoogle.credential
+    });
   };
+
+  const authCodeLogin = useGoogleLogin({
+    onSuccess: async codeResponse => {
+      await apiClient.post('auth/google/', { code: codeResponse.code });
+    },
+    flow: 'auth-code'
+  });
 
   return (
     <div>
       {!displayName ? (
-        <GoogleLogin onSuccess={responseMessage} />
+        <Box display="flex" flexDirection="row" gap="5px" alignItems="center">
+          <LoginModal />
+          <SignUpButton />
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => authCodeLogin()}
+          >
+            Google
+          </Button>
+          <GoogleLogin onSuccess={responseMessage} />
+        </Box>
       ) : (
         <Button variant="contained" color="secondary" onClick={logout}>
           Logout
